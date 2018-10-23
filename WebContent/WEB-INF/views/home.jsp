@@ -46,6 +46,18 @@
 
 	<div class="container">
 		<div class="row">
+			
+			<div class="col s12 m6">
+				<div class="card blue-grey darken-1 hoverable">
+					<div class="card-content white-text">
+						<span class="card-title" id="tl">Todo dia uma citação diferente!</span>
+						<p id="bd">With some everyday quotes and forecast</p>
+					</div>
+					<div class="card-action">
+					</div>
+				</div>
+			</div>
+		
 			<%
 				if (notas != null) {
 					for (Note nota : notas) {
@@ -112,7 +124,27 @@
 			$(".dropdown-trigger").dropdown();
 			$('.sidenav').sidenav();
 			$('#modal_note').modal();
+			$.ajax({
+				type: 'GET',
+				url : 'http://api.openweathermap.org/data/2.5/weather?id=3448439&appid=9f1f5601018bb5eb47dd1893e63d019f',
+				success : function(data, status, xhr){
+					clima = data
+					getQuote(clima);
+				},
+				error: function(xhr, status, error){alert(error);}		
+			});
 		});
+		function getQuote(weather){
+			$.ajax({
+				type: 'GET',
+				url : 'https://quotes.rest/qod',
+				success : function(data, status, xhr){
+					citacao = data.contents.quotes[0];
+					fillDailyCard(weather,citacao);
+				},
+				error: function(xhr, status, error){alert(error);}		
+			});
+		}
 		function selectNote(noteId) {
 			var Modalelem = document.querySelector('#modal_note');
             var instance = M.Modal.init(Modalelem);
@@ -145,14 +177,12 @@
 			}else if(action == "add"){
 				method = "POST";
 			}
-			console.log(title,body);
 			$.ajax({
 				type: method,
 				url : './note',
 				contentType : 'application/x-www-form-urlencoded',
 				data : "user_id=" + userId + '&note_id=' + note_id + '&title=' + title + '&body=' + body,
 				success : function(data, status, xhr){
-					console.log(data)
 					if(method == "PUT"){
 					$('#tl' + note_id).text(title);
 					$('#bd' + note_id).text(body);
@@ -172,9 +202,17 @@
 				contentType : 'application/x-www-form-urlencoded',
 				data : "note_id=" + noteId,
 				success : function(data, status, xhr){console.log("deleted")},
-				error: function(xhr, status, error){alert(error);}		
+				error: function(xhr, status, error){}		
 			});
 			instance.close();
+		}
+		
+		function fillDailyCard(clima, citacao){
+			
+			$('#tl').text("Todo dia uma citação diferente!");
+			var textao = clima.name + ", " + clima.main.temp/10 + "ºC  "
+			textao += ", " + clima.weather[0].main + "      \"" + citacao.quote + "\" - " + citacao.author;
+			$('#bd').text(textao);
 		}
 	</script>
 </body>
